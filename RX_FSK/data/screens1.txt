@@ -107,7 +107,7 @@
 #      Mid press activates Spectrum display, long press activates Wifi scan
 # - key2 has no function
 ###################### MOD BY LZ4TU #####################
-# added line "5,0,16=S" , This is to view RX level in scan mode
+# view RSSI after QRG in Scanner screen: added line 3,10=R
 @Scanner
 timer=-1,0,2
 key1action=D,#,F,W
@@ -134,13 +134,14 @@ timeaction=#,D,+
 #   (norx timer: if no signal for >20 seconds: go back to scanner mode)
 #
 ###################### MOD BY LZ4TU #####################
-# timer=32,10,25
-# 32, IF there is unstable RX and NORX both timers resets, so when TOTAL TIMER = 32sec expire
-# it will continue on next QRG, this has to be 45 sec, but there is bug by DL9RDZ, 
-# used INT16 var to store this in ms, so after 32 it overflow and interprets as -xxxxx
-# and when 0 or negative value TOTAL TIMER NEVER EXPIRES, this will be fixed in the future
-# 10, IF there is stable RX for every one second in 10 seconds period, goes to next QRG
-# 25, IF there is NORX for every single second in 25 seconds period, goes to next QRG
+# Meaning of values in the example row of @Legacy "timer=32,10,25"
+# 32: "view timer" - IF there is unstable RX for 32 sec. both "rx timer" and "norx timer" will be reseted,
+# so when "view timer" = 32 sec. expire, scan will continue to next QRG. 
+# *Would be better to be 45 sec, but there is a little bug, as timers are stored in ms in var of type INT16,
+# so if more than 32 seconds are used for any timer, it will overflow and interprets as -xxxxx
+# and the timer will never expire. We have to use values <= 32 for now, could be fixed in the future.
+# 10: "rx timer" - IF there is stable RX for every one second in 10 seconds period, scan continue to next QRG.
+# 25: "norx timer" - IF there is NORX for each second in 25 seconds period, scan continue to next QRG.
 @Legacy
 timer=25,5,20
 key1action=+,0,F,W
@@ -163,8 +164,8 @@ timeaction=2,2,0
 # similar to @Legacy, but no norx timer, and Key2 goes to display 4
 #
 ###################### MOD BY LZ4TU #####################
-# This display "2" must be disabled in config, USED to change QRG to next when there is RX or TOT,
-# do not change or modify except last 3 rows
+# This display "2" = "@Field" must be disabled in the config Display screens (scan, default, ...) = 0,1,3,4,5,6 for example,
+# as it is used for change QRG to the next one, when "view timer" or "rx timer" expires. Only the last 3 rows could be changed.
 @Field
 timer=1,0,0
 key1action=+,0,F,W
