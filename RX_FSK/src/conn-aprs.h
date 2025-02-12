@@ -8,7 +8,7 @@
 #include "aprs.h"
 
 // Times in ms, i.e. station: 10 minutes, mobile: 20 seconds
-#define APRS_STATION_UPDATE_TIME (10*60*1000)
+#define APRS_STATION_UPDATE_TIME (2*60*1000)  // 10 min changed to 2 min LZ4TU-5 telemetry MOD
 #define APRS_MOBILE_STATION_UPDATE_TIME (20*1000)
 
 static unsigned long time_last_aprs_update = -APRS_STATION_UPDATE_TIME;
