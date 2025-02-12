@@ -92,7 +92,7 @@ PMU *pmu = NULL;
 SemaphoreHandle_t axpSemaphore;
 extern uint8_t pmu_irq;
 
-const char *updateHost = "rdzsonde.mooo.com";
+const char *updateHost = "devlz.mooo.com";
 int updatePort = 80;
 
 const char *updatePrefixM = "/main/";
@@ -117,7 +117,7 @@ const char *sondeTypeStrSH[NSondeTypes] = { "DFM", "RS41", "RS92", "Mxx"/*never 
 
 // moved to connSondehub.cpp
 //#if FEATURE_SONDEHUB
-//#define SONDEHUB_STATION_UPDATE_TIME (60*60*1000) // 60 min
+//#define SONDEHUB_STATION_UPDATE_TIME (60*60*1000) // 60 min changed to 2 min LZ4TU-5 telemetry MOD in connSondehub.cpp 
 //#define SONDEHUB_MOBILE_STATION_UPDATE_TIME (30*1000) // 30 sec
 //WiFiClient shclient;	// Sondehub v2
 //int shImportInterval = 0;
@@ -128,6 +128,12 @@ const char *sondeTypeStrSH[NSondeTypes] = { "DFM", "RS41", "RS92", "Mxx"/*never 
 // JSON over TCP for communicating with the rdzSonde (rdzwx-go) Android app
 WiFiServer rdzserver(14570);
 WiFiClient rdzclient;
+
+// LZ4TU-5 MODs, all commented with LZ4TU at least
+// few changes in: RX_FSK.ino, aprs.cpp, conn-aprs.h, conn-sondehub.cpp, sonde.cpp, version.h
+// in FS modified: screens1.txt for scan mod
+// in FS modified: style.css, index.html, livemap.js, upd.html ; added: monitor.html, moni.js, chart.js
+boolean newdata = false; // LZ4TU-5 telemetry MOD, when new UART data available to be sent via APRS update sonde instead of version_name = rdzTTGOsonde
 
 // If a file "localupd.txt" exists, firmware can be updated from a custom IP address read from this file, stored in localUpdates.
 // By default (localUpdates==NULL) this is disabled to prevent abuse
@@ -1379,7 +1385,24 @@ void SetupAsyncServer() {
     handleControlPost(request);
     request->send(200, "text/html", createControlForm());
   });
-
+  #if 1 // LZ4TU-5 mod
+   // Route to serve the monitor.html file
+  server.on("/monitor.html", HTTP_GET, [](AsyncWebServerRequest *request){
+    // Load the monitor.html file from SPIFFS and send it as the response
+    request->send(LittleFS, "/monitor.html", "text/html");
+  });
+  // Route to serve telemetry data
+  server.on("/telemetry", HTTP_GET, [](AsyncWebServerRequest *request){
+    // Send the telemetry data as the response
+    request->send(200, "text/plain", sonde.config.sondehub.antenna);
+  });
+  server.on("/chart.js", HTTP_GET, [](AsyncWebServerRequest *request){
+  request->send(LittleFS, "/chart.js", "text/javascript");
+});
+  server.on("/moni.js", HTTP_GET, [](AsyncWebServerRequest *request){
+  request->send(LittleFS, "/moni.js", "text/javascript");
+});
+#endif
   server.on("/login.html", HTTP_GET, [](AsyncWebServerRequest * request) {
     request->send(LittleFS, "/login.html", String(), false, processor);
   });
@@ -2308,6 +2331,7 @@ void loopDecoder() {
     if (s->d.validID && ((s->d.validPos & 0x03) == 0x03)) {
 #if FEATURE_APRS
       connAPRS.updateSonde(s);
+	  newdata = false; // Suppose new data is sent via APRS   LZ4TU-5 MOD
 #endif
 #if FEATURE_CHASEMAPPER
       connChasemapper.updateSonde( s );
@@ -3194,6 +3218,29 @@ void loop() {
   Serial.print(" LNA Gain: "),
                Serial.println(gain);
 #endif
+#if 1 // LZ4TU-5 telemetry MOD
+  if (Serial.available()) {
+    char serialstring[64] = {0};
+    int serialoverflow = 0;
+    while (Serial.available() && serialoverflow < 63) {
+      sprintf(serialstring, "%s%c", serialstring, Serial.read());
+      serialoverflow++;
+    }
+    newdata = true;
+    memset(sonde.config.sondehub.antenna, 0, sizeof(sonde.config.sondehub.antenna));
+    memset(sonde.config.comment, 0, sizeof(sonde.config.comment));
+    memcpy(sonde.config.sondehub.antenna, serialstring, serialoverflow - 1);
+    if (serialoverflow > 31) {
+      serialoverflow  = 31;
+    }
+    memcpy(sonde.config.comment, serialstring, serialoverflow - 1);
+    Serial.print("UART: ");
+    Serial.println(sonde.config.sondehub.antenna);
+    // Serial.println(serialstring);
+    // Serial.println(sonde.config.comment);
+  }
+#endif
+
   loopWifiBackground();
   if (currentDisplay != lastDisplay && (mainState == ST_DECODER)) {
     disp.setLayout(currentDisplay);
@@ -3205,5 +3252,3 @@ void loop() {
   delay(1000);
 #endif
 }
-
-
