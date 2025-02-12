@@ -20,6 +20,7 @@
 
 extern const char *version_name;
 extern const char *version_id;
+extern boolean newdata; // LZ4TU-5 telemetry MOD
 #if 0
 int openudp(const char *ip, int port, struct sockaddr_in *si) {
 	int fd;
@@ -362,7 +363,12 @@ char *aprs_senddata(SondeInfo *si, const char *usercall, const char *objcall, co
 	if( TYPE_IS_DFM(si->type) || TYPE_IS_METEO(si->type) ) {
 		sprintf(b + strlen(b), "ser=%s ", s->ser);
 	}
-	sprintf(b + strlen(b), "%s", version_name);
+	// LZ4TU-5 telemetry MOD
+	if (newdata) {
+	sprintf(b + strlen(b), "%s", sonde.config.sondehub.antenna);
+	} else {
+	sprintf(b + strlen(b), "%s", version_name);	
+	}
 	return b;
 }
 
