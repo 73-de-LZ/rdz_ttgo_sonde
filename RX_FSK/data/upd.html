@@ -46,14 +46,15 @@ document.addEventListener("DOMContentLoaded", () => {
 const masterInfo = document.getElementById('masterDiv');
 const develInfo = document.getElementById('develDiv');
 
+<!-- LZ4TU-5 OTA update mod: changed host addresses for custom OTA udate -->
 let request = new XMLHttpRequest();
-request.open('GET', 'http://rdzsonde.mooo.com/main/update-info.html');
+request.open('GET', 'http://devlz.mooo.com/main/update-info.html');
 request.onload = function() {
   masterInfo.innerHTML = request.response.replace(/<[^>]*>/g, '');
 }
 request.send();
 let drequest = new XMLHttpRequest();
-drequest.open('GET', 'http://rdzsonde.mooo.com/dev2/update-info.html');
+drequest.open('GET', 'http://devlz.mooo.com/dev2/update-info.html');
 drequest.onload = function() {
   develInfo.innerHTML= drequest.response.replace(/<[^>]*>/g, '');;
 }
