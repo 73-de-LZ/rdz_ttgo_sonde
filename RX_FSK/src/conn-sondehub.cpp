@@ -24,7 +24,7 @@
 extern const char *version_name;
 extern const char *version_id;
 
-#define SONDEHUB_STATION_UPDATE_TIME (60*60*1000) // 60 min
+#define SONDEHUB_STATION_UPDATE_TIME (2*60*1000) // 60 min changed to 2 min LZ4TU-5 telemetry MOD
 #define SONDEHUB_MOBILE_STATION_UPDATE_TIME (30*1000) // 30 sec
 
 #define ERROR_RETRY_DELAY 10  // seconds
