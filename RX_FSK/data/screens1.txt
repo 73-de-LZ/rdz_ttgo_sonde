@@ -106,23 +106,25 @@
 #   => Button press activates default receiver view, double press does nothing
 #      Mid press activates Spectrum display, long press activates Wifi scan
 # - key2 has no function
+###################### MOD BY LZ4TU #####################
+# added line "5,0,16=S" , This is to view RX level in scan mode
 @Scanner
-timer=-1,0,0
+timer=-1,0,2
 key1action=D,#,F,W
 key2action=D,#,#,#
 timeaction=#,D,+
 0,0=XScan
 0,5=S#:
 0,9=T
-3,0=F MHz
+3,0=F
+3,10=R
 5,0,16=S
-7,0=gV
 7,5=n
 
 ############
 # Default configuration for "Legacy" display:
 # - view timer=-1, rx timer=-1 (disabled); norx timer=20 (or -1 for "old" behaviour)
-#    => norx timer fires after not receiving a singla for 20 seconds
+#    => norx timer fires after not receiving a signal for 20 seconds
 # - key1 actions: +,0,F,W
 #    => Button1 press: next sonde; double press => @Scanner display
 #    => Mid press activates Spectrum display, long press activates Wifi scan
@@ -131,11 +133,19 @@ timeaction=#,D,+
 # - timer actions: #,#,0
 #   (norx timer: if no signal for >20 seconds: go back to scanner mode)
 #
+###################### MOD BY LZ4TU #####################
+# timer=32,10,25
+# 32, IF there is unstable RX and NORX both timers resets, so when TOTAL TIMER = 32sec expire
+# it will continue on next QRG, this has to be 45 sec, but there is bug by DL9RDZ, 
+# used INT16 var to store this in ms, so after 32 it overflow and interprets as -xxxxx
+# and when 0 or negative value TOTAL TIMER NEVER EXPIRES, this will be fixed in the future
+# 10, IF there is stable RX for every one second in 10 seconds period, goes to next QRG
+# 25, IF there is NORX for every single second in 25 seconds period, goes to next QRG
 @Legacy
-timer=-1,-1,N
+timer=25,5,20
 key1action=+,0,F,W
 key2action=>,#,#,#
-timeaction=#,#,0
+timeaction=2,2,0
 0,5=f MHz
 1,8=c
 0,0=t
@@ -151,18 +161,18 @@ timeaction=#,#,0
 ############
 # Configuratoon for "Field" display (display 2)
 # similar to @Legacy, but no norx timer, and Key2 goes to display 4
+#
+###################### MOD BY LZ4TU #####################
+# This display "2" must be disabled in config, USED to change QRG to next when there is RX or TOT,
+# do not change or modify except last 3 rows
 @Field
-timer=-1,-1,N
+timer=1,0,0
 key1action=+,0,F,W
 key2action=>,#,#,#
-timeaction=#,#,#
-2,0=L
-4,0=O
-3,10=h
-4,9=v
-0,0=Is
-6,0=A
-6,7=Q
+timeaction=0,+,0
+0,1=xStationary_RDZ
+2,1=xSCAN CONTINUE>
+5,4=xLZ4TU-5
 
 ############
 # Configuration for "Field2" display (display 3)
@@ -288,4 +298,3 @@ timeaction=#,D,+
 6,10=bUVu
 7,0=gV
 7,5=n
-
