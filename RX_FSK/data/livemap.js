@@ -69,11 +69,12 @@ $(document).ready(function(){
 var reddot = '<span class="ldot rbg"></span>';
 var yellowdot = '<span class="ldot ybg"></span>';
 var greendot = '<span class="ldot gbg"></span>';
+var bluedot = '<span class="ldot bbg"></span>'; // Blue dot mod LZ4TU
 var lastframe = 0;
 
 $('#map .leaflet-control-container').append(L.DomUtil.create('div', 'leaflet-top leaflet-center leaflet-header'));
-var header = '';
-header += '<div id="sonde_main"><b>rdzTTGOSonde LiveMap</b><br />🎈 <b><span id="sonde_id"></span> - <span id="sonde_freq"></span> MHz - <span id="sonde_type"></span></b></div>';
+var header = '';  // next line mod LZ4TU
+header += '<div id="sonde_main"><table width="100%"><tr><th>RDZ LiveMap</th><th>AFC <span id="current_afc"></span></th><th>-<span id="current_rssi"></span>dBm</th></tr><tr><th>🎈<span id="sonde_id"></span></th><th><span id="sonde_freq"></span> MHz</th><th><span id="sonde_type"></span></th></tr></table></div>';
 header += '<div id="sonde_detail"><span id="sonde_alt"></span>m | <span id="sonde_climb"></span>m/s | <span id="sonde_speed"></span>km/h | <span id="sonde_dir"></span>°<br /><span id="sonde_time"></span> | -<span id="sonde_rssi"></span>dBm</div>';
 header += '<div id="sonde_status"><span id="sonde_statbar"></span></div>';
 header += '<div id="settings"><br /><b>Prediction-Settings</b><br />';
@@ -95,8 +96,13 @@ $('.leaflet-footer').append(footer);
 var statbar = '';
 headtxt = function(data,stat) {
   var staticon = (stat == '1')?greendot:yellowdot; 
+  if (stat == '2') {
+	   staticon = bluedot;  // Blue dot mod LZ4TU
+  }
   statbar = staticon + statbar;
   if ((statbar.length) > 10*greendot.length) { statbar = statbar.substring(0,10*greendot.length); }
+  $('#current_rssi').html(data.rssi / 2 ); // mod LZ4TU
+  $('#current_afc').html(data.afc); // mod LZ4TU
   if (data.id && data.vframe != lastframe ) {
     lastframe = data.vframe;
     $('#sonde_id').html(data.id);
@@ -122,19 +128,69 @@ map.addControl(new L.Control.Button([ { position: 'topleft', text: '🔙', href:
   
 L.control.zoom({ position:'topleft' }).addTo(map);
 
-map.addControl(new L.Control.Button([ { position: 'topleft', text: '🗺️', href: 'javascript:basemap_change();' } ]));
+map.addControl(new L.Control.Button([ { position: 'topleft', text: 'map', href: 'javascript:basemap_change();' } ]));
 
 map.addControl(new L.Control.Button([ { position: 'topright', id: "status", text: '', href: 'javascript:get_data();' } ]));
 
 map.addControl(new L.Control.Button([
-  { position:'topright', text: '🎈', href: 'javascript:show(marker[last_id],\'marker\');' },
+  { position:'topright', text: 'pos', href: 'javascript:show(marker[last_id],\'marker\');' },
   { text: '〰️', href: 'javascript:show_line();' },
   { text: '💥', href: 'javascript:show(marker_burst[last_id],\'burst\');' },
   { text: '🎯', href: 'javascript:show(marker_landing[last_id],\'landing\');' }
 ]));
 
 map.addControl(new L.Control.Button([ { position:'topright', text: '⚙️', href: 'javascript:show_settings();' } ]));
-
+/* LZ4TU mod live map scan, pause scan, stop scan, NextQRG mod begin*/
+map.addControl(new L.Control.Button([ { position: 'bottomleft', text: 'CH+', href: 'javascript:button1_short();' } ]));
+map.addControl(new L.Control.Button([ { position: 'bottomleft', text: 'Scan', href: 'javascript:button1_double();' } ]));
+map.addControl(new L.Control.Button([ { position: 'bottomright', text: 'Stop', href: 'javascript:button2_2shorts();' } ]));
+map.addControl(new L.Control.Button([ { position: 'bottomright', text: 'Pause', href: 'javascript:button2_short();' } ]));
+    button1_short = function() {
+    fetch("control.html", {
+    method: "POST",
+    body: 'rx=Receiver/next freq. (short keypress)',
+    headers: {
+        "Content-type": "application/x-www-form-urlencoded"
+    }
+    });
+  };  
+  button1_double = function() {
+    fetch("control.html", {
+    method: "POST",
+    body: 'scan=Scanner (double keypress)',
+    headers: {
+        "Content-type": "application/x-www-form-urlencoded"
+    }
+    });
+  };
+  button2_2shorts = function() {
+    fetch("control.html", {
+    method: "POST",
+    body: 'rx2=Button 2/next screen (short keypress)',
+    headers: {
+        "Content-type": "application/x-www-form-urlencoded"
+    }
+    });
+	setTimeout(function(){
+	fetch("control.html", {
+    method: "POST",
+    body: 'rx2=Button 2/next screen (short keypress)',
+    headers: {
+        "Content-type": "application/x-www-form-urlencoded"
+    }
+    });
+    }, 1100); 
+  };
+    button2_short = function() {
+    fetch("control.html", {
+    method: "POST",
+    body: 'rx2=Button 2/next screen (short keypress)',
+    headers: {
+        "Content-type": "application/x-www-form-urlencoded"
+    }
+    });
+  };
+/* LZ4TU mod end*/
   
     
   show = function(e,p) {
@@ -212,14 +268,19 @@ map.addControl(new L.Control.Button([ { position:'topright', text: '⚙️', hre
         }
         
       }
+      // blue dot mod LZ4TU
       if (data.res == 0) {
         storage_write(data);
         $('#status').html(greendot);
         stat = 1;
-      } else {
-        $('#status').html(yellowdot);
-        stat = 0;
-      }
+      } else {if (data.res > 1) {
+            $('#status').html(bluedot);
+            stat = 2;
+            } else {
+                $('#status').html(yellowdot);
+                stat = 0;
+            }
+	    }
       headtxt(data,stat);
       last_data = data;
     } else {
@@ -248,7 +309,7 @@ map.addControl(new L.Control.Button([ { position:'topright', text: '⚙️', hre
     }
 
     if (!marker_gps) {
-      map.addControl(new L.Control.Button([{ position: 'topleft', text: '🛰️', href: 'javascript:show(marker_gps,\'gps\');' }]));
+      map.addControl(new L.Control.Button([{ position: 'topleft', text: 'GPS', href: 'javascript:show(marker_gps,\'gps\');' }]));
 
       marker_gps = L.marker(gps_location,{icon:icon_gps}).addTo(map)
       .bindPopup(poptxt('gps',e),{closeOnClick:false, autoPan:false});
