@@ -19,6 +19,8 @@
 #include <Wire.h>
 #include "conn-mqtt.h"
 
+float AltThreshold = 5000; // Altitude threshold, below it LZ4TU SCAN algo will stop and continue only when there is NORX Timeout
+
 RXTask rxtask = { -1, -1, -1, 0xFFFF, 0 };
 
 const char *evstring[]={"NONE", "KEY1S", "KEY1D", "KEY1M", "KEY1L", "KEY2S", "KEY2D", "KEY2M", "KEY2L",
@@ -351,7 +353,8 @@ extern const int N_CONFIG;
 void Sonde::checkConfig() {
 	if(config.maxsonde > MAXSONDE) config.maxsonde = MAXSONDE;
 	if(config.sondehub.fiinterval<5) config.sondehub.fiinterval = 5;
-	if(config.sondehub.fimaxdist>700) config.sondehub.fimaxdist = 700;
+	//LZ4TU mod max dist.
+	if(config.sondehub.fimaxdist>1200) config.sondehub.fimaxdist = 1200;
 	if(config.sondehub.fimaxage>48) config.sondehub.fimaxage = 48;
 	if(config.sondehub.fimaxdist==0) config.sondehub.fimaxdist = 150;
 	if(config.sondehub.fimaxage==0) config.sondehub.fimaxage = 2;
@@ -690,6 +693,12 @@ uint8_t Sonde::timeoutEvent(SondeInfo *si) {
 		now, si->rxStart, disp.layout->timeouts[1],
 		now, si->norxStart, disp.layout->timeouts[2], si->lastState);
 #endif
+// LZ4TU mod :
+    if(si->d.vs < -1.5 && si->d.alt < AltThreshold) {  // If vertical speed is negative(sonde falls), and Altitude is lower than treshold
+        si->rxStart = millis(); // clear RXTO timer
+		si->viewStart = millis(); // clear also the total timer
+    }
+	
 	if(disp.layout->timeouts[0]>=0 && now - si->viewStart >= disp.layout->timeouts[0]) {
 		LOG_I(TAG, "Sonde::timeoutEvent: View\n");
 		return EVT_VIEWTO;
