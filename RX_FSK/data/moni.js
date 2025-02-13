@@ -253,7 +253,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         backgroundColor: '#002222',
                         borderWidth: 1,
                         radius: 0,
-                        tension: 0,						
+                        tension: 0,
+                        stepped: true,						
                         fill: true
                     }
                 ]
@@ -303,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         display: true,
                         position: 'right',
                         min: 0,
-                        max: 20000,
+                        max: 12000,
                         title: {
                             display: false,
                             text: 'RPM'
