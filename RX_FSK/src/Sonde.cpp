@@ -20,8 +20,21 @@
 #include "conn-mqtt.h"
 
 float AltThreshold = 5000.0; // Altitude threshold, below it LZ4TU SCAN algo will stop and continue only when there is NORX Timeout
+float AltThresholdHi = 2200.0; // M10 M20 AFC refresh High Altitude
+float AltThresholdLo = 1000.0; //  M10 M20 AFC refresh Low Altitude
 float VspeedThreshold = -1.5; // Vertical speed threshold, for LZ4TU SCAN algo to detect landing sonde and stop scan 
-uint8_t LandingSonde = 0; // LZ4TU Landing stop SCAN mod, 0;1 or 2, used to switch to screen3 that does not have VIEWTO and RXTO
+uint8_t LandingSonde = 0; // LZ4TU mod to stop SCAN during landing
+// 0: No landing sonde detected
+// 1: First detection of landing sonde, switch to display 3
+// 2: Landing sonde receiving in display 3, NORX timeout can exit and return to scan mode
+// M10 and M20 drifting while landing, freq. change when sonde fall and warms, we will force AFC to refresh:
+// 3: Refresh AFC by initializing Scan mode once under 2000m. 
+// 4: Landing sonde, switch to display 3
+// 5: Landing sonde receiving in display 3, NORX timeout can exit and return to scan mode
+// M10 M20 2nd force refresh
+// 6: Refresh AFC by initializing Scan mode once under 1000m
+// 7: Landing sonde, switch to display 3
+// 8: Landing sonde receiving in display 3, NORX timeout can exit and return to scan mode
 
 RXTask rxtask = { -1, -1, -1, 0xFFFF, 0 };
 
@@ -601,14 +614,40 @@ void Sonde::receive() {
 	// we should handle timer events here, because after returning from receive,
 	// we'll directly enter setup
 	rxtask.receiveSonde = rxtask.currentSonde; // pass info about decoded sonde to main loop
-	#if 1 //LZ4TU Landing stop mod:
+	#if 1 //LZ4TU scan stop on LandingSonde mod:
 		int event = 0;
-		if (LandingSonde == 1) {
-			event = 6;  // simulate button2.pressed = KP_DOUBLE = 2 + 4 and go to screens2.txt display 3 = PauseLanding
-			LandingSonde = 2;
-		}
-		else {
-			event = getKeyPressEvent();
+		switch (LandingSonde) {
+			case 1: 
+			{
+				event = 6;  // simulate button2.pressed = KP_DOUBLE = 2 + 4 and go to screens2.txt display 3 = PauseLanding
+				LandingSonde = 2;
+				break;
+			}
+			case 3: 
+			{
+				event = 2;  // simulate button1.pressed = KP_DOUBLE = 2 and go to screens2.txt display 0 = Scanner
+				LandingSonde = 4; // next pass will switch again to display 3 = PauseLanding
+				break;
+			}
+			case 4: 
+			{
+				event = 6;  // go to display 3 = PauseLanding
+				LandingSonde = 5;
+				break;
+			}
+			case 6: 
+			{
+				event = 2;  // go to display 0 = Scanner
+				LandingSonde = 7; // next pass will switch again to display 3 = PauseLanding
+				break;
+			}
+			case 7: 
+			{
+				event = 6;  // go to display 3 = PauseLanding
+				LandingSonde = 8;
+				break;
+			}
+			default: event = getKeyPressEvent(); // 0,2,5,8 
 		}
 	#endif
 	if (!event) event = timeoutEvent(si);
@@ -702,12 +741,21 @@ uint8_t Sonde::timeoutEvent(SondeInfo *si) {
 		now, si->rxStart, disp.layout->timeouts[1],
 		now, si->norxStart, disp.layout->timeouts[2], si->lastState);
 #endif
-#if 1 //LZ4TU Landing stop mod:
+#if 1 //LZ4TU scan stop on Landing mod:
 	// If vertical speed is negative(sonde falls), and Altitude is lower than treshold
 	// and lastState = RXed and it is first time detected
     if(si->d.vs < VspeedThreshold && si->d.alt < AltThreshold && si->lastState == 1 && LandingSonde == 0 ) {  
-		LandingSonde = 1;		
+		LandingSonde = 1;
     }
+	// M10 M20 landing AFC refresh
+	if(TYPE_IS_METEO(si->type)) {
+		if(LandingSonde == 2 && si->d.alt < AltThresholdHi && si->d.alt > AltThresholdLo ) {
+		LandingSonde = 3;
+		}
+		if((LandingSonde == 2 || LandingSonde == 5 ) && si->d.alt < AltThresholdLo ) {
+		LandingSonde = 6;
+		}
+	}
 #endif	
 	if(disp.layout->timeouts[0]>=0 && now - si->viewStart >= disp.layout->timeouts[0]) {
 		LOG_I(TAG, "Sonde::timeoutEvent: View\n");
