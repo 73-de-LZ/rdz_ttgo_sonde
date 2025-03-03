@@ -106,25 +106,23 @@
 #   => Button press activates default receiver view, double press does nothing
 #      Mid press activates Spectrum display, long press activates Wifi scan
 # - key2 has no function
-###################### MOD BY LZ4TU #####################
-# view RSSI after QRG in Scanner screen: added line 3,10=R
 @Scanner
-timer=-1,0,2
+timer=-1,0,0
 key1action=D,#,F,W
 key2action=D,#,#,#
 timeaction=#,D,+
 0,0=XScan
 0,5=S#:
 0,9=T
-3,0=F
-3,10=R
+3,0=F MHz
 5,0,16=S
+7,0=gV
 7,5=n
 
 ############
 # Default configuration for "Legacy" display:
 # - view timer=-1, rx timer=-1 (disabled); norx timer=20 (or -1 for "old" behaviour)
-#    => norx timer fires after not receiving a signal for 20 seconds
+#    => norx timer fires after not receiving a singla for 20 seconds
 # - key1 actions: +,0,F,W
 #    => Button1 press: next sonde; double press => @Scanner display
 #    => Mid press activates Spectrum display, long press activates Wifi scan
@@ -133,20 +131,11 @@ timeaction=#,D,+
 # - timer actions: #,#,0
 #   (norx timer: if no signal for >20 seconds: go back to scanner mode)
 #
-###################### MOD BY LZ4TU #####################
-# Meaning of values in the example row of @Legacy "timer=32,10,25"
-# 32: "view timer" - IF there is unstable RX for 32 sec. both "rx timer" and "norx timer" will be reseted,
-# so when "view timer" = 32 sec. expire, scan will continue to next QRG. 
-# *Would be better to be 45 sec, but there is a little bug, as timers are stored in ms in var of type INT16,
-# so if more than 32 seconds are used for any timer, it will overflow and interprets as -xxxxx
-# and the timer will never expire. We have to use values <= 32 for now, could be fixed in the future.
-# 10: "rx timer" - IF there is stable RX for every one second in 10 seconds period, scan continue to next QRG.
-# 25: "norx timer" - IF there is NORX for each second in 25 seconds period, scan continue to next QRG.
 @Legacy
-timer=25,5,20
+timer=-1,-1,N
 key1action=+,0,F,W
 key2action=>,#,#,#
-timeaction=2,2,0
+timeaction=#,#,0
 0,5=f MHz
 1,8=c
 0,0=t
@@ -162,18 +151,18 @@ timeaction=2,2,0
 ############
 # Configuratoon for "Field" display (display 2)
 # similar to @Legacy, but no norx timer, and Key2 goes to display 4
-#
-###################### MOD BY LZ4TU #####################
-# This display "2" = "@Field" must be disabled in the config Display screens (scan, default, ...) = 0,1,3,4,5,6 for example,
-# as it is used for change QRG to the next one, when "view timer" or "rx timer" expires. Only the last 3 rows could be changed.
 @Field
-timer=1,0,0
+timer=-1,-1,N
 key1action=+,0,F,W
 key2action=>,#,#,#
-timeaction=0,+,0
-0,1=xStationary_RDZ
-2,1=xSCAN CONTINUE>
-5,4=xLZ4TU-5
+timeaction=#,#,#
+2,0=L
+4,0=O
+3,10=h
+4,9=v
+0,0=Is
+6,0=A
+6,7=Q
 
 ############
 # Configuration for "Field2" display (display 3)
@@ -299,3 +288,4 @@ timeaction=#,D,+
 6,10=bUVu
 7,0=gV
 7,5=n
+
