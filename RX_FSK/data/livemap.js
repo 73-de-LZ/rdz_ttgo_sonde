@@ -143,9 +143,9 @@ map.addControl(new L.Control.Button([ { position:'topright', text: '⚙️', hre
 /* LZ4TU mod live map scan, pause scan, stop scan, NextQRG mod begin*/
 map.addControl(new L.Control.Button([ { position: 'bottomleft', text: 'CH+', href: 'javascript:button1_short();' } ]));
 map.addControl(new L.Control.Button([ { position: 'bottomleft', text: 'Scan', href: 'javascript:button1_double();' } ]));
-map.addControl(new L.Control.Button([ { position: 'bottomright', text: 'Stop', href: 'javascript:button2_2shorts();' } ]));
-map.addControl(new L.Control.Button([ { position: 'bottomright', text: 'Pause', href: 'javascript:button2_short();' } ]));
-    button1_short = function() {
+map.addControl(new L.Control.Button([ { position: 'bottomright', text: 'Stop', href: 'javascript:button2_medium();' } ]));
+map.addControl(new L.Control.Button([ { position: 'bottomright', text: 'Pause', href: 'javascript:button2_double();' } ]));
+  button1_short = function() {
     fetch("control.html", {
     method: "POST",
     body: 'rx=Receiver/next freq. (short keypress)',
@@ -163,28 +163,19 @@ map.addControl(new L.Control.Button([ { position: 'bottomright', text: 'Pause', 
     }
     });
   };
-  button2_2shorts = function() {
+  button2_medium = function() {
     fetch("control.html", {
     method: "POST",
-    body: 'rx2=Button 2/next screen (short keypress)',
+    body: 'spec2=Button 2/Stop (medium keypress)',
     headers: {
         "Content-type": "application/x-www-form-urlencoded"
     }
     });
-	setTimeout(function(){
-	fetch("control.html", {
-    method: "POST",
-    body: 'rx2=Button 2/next screen (short keypress)',
-    headers: {
-        "Content-type": "application/x-www-form-urlencoded"
-    }
-    });
-    }, 1100); 
   };
-    button2_short = function() {
+    button2_double = function() {
     fetch("control.html", {
     method: "POST",
-    body: 'rx2=Button 2/next screen (short keypress)',
+    body: 'scan2=Button 2/Pause-Landing (double keypress)',
     headers: {
         "Content-type": "application/x-www-form-urlencoded"
     }
