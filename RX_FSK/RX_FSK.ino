@@ -131,8 +131,10 @@ WiFiClient rdzclient;
 
 // LZ4TU-5 MODs, all commented with LZ4TU at least
 // few changes in: RX_FSK.ino, aprs.cpp, conn-aprs.h, conn-sondehub.cpp, sonde.cpp, version.h
-// in FS modified: screens1.txt for scan mod
-// in FS modified: style.css, index.html, livemap.js, upd.html ; added: monitor.html, moni.js, chart.js
+// in FS modified: screens2.txt for scan mod
+// in FS modified: style.css, index.html, livemap.js, cfg.js, upd.html ; added: monitor.html, moni.js, *chart.js
+// in order to work in the config>OLED/TFT display configuration>Screen config=2 
+// and config>OLED/TFT display configuration>Display screens (scan, default, ...)=0,1,3,4,5,6
 boolean newdata = false; // LZ4TU-5 telemetry MOD, when new UART data available to be sent via APRS update sonde instead of version_name = rdzTTGOsonde
 
 // If a file "localupd.txt" exists, firmware can be updated from a custom IP address read from this file, stored in localUpdates.
@@ -934,7 +936,7 @@ const char *handleConfigPost(AsyncWebServerRequest * request) {
 const char *ctrlid[] = {"rx", "scan", "spec", "wifi", "rx2", "scan2", "spec2", "wifi2", "reboot"};
 
 const char *ctrllabel[] = {"Receiver/next freq. (short keypress)", "Scanner (double keypress)", "Spectrum (medium keypress)", "WiFi (long keypress)",
-                           "Button 2/next screen (short keypress)", "Button 2 (double keypress)", "Button 2 (medium keypress)", "Button 2 (long keypress)",
+                           "Button 2/next screen (short keypress)", "Button 2/Pause-Landing (double keypress)", "Button 2/Stop (medium keypress)", "Button 2 (long keypress)",
                            "Reboot"
                           };
 
@@ -1396,9 +1398,9 @@ void SetupAsyncServer() {
     // Send the telemetry data as the response
     request->send(200, "text/plain", sonde.config.sondehub.antenna);
   });
-  server.on("/chart.js", HTTP_GET, [](AsyncWebServerRequest *request){
-  request->send(LittleFS, "/chart.js", "text/javascript");
-});
+//   server.on("/chart.js", HTTP_GET, [](AsyncWebServerRequest *request){
+//   request->send(LittleFS, "/chart.js", "text/javascript");
+// });
   server.on("/moni.js", HTTP_GET, [](AsyncWebServerRequest *request){
   request->send(LittleFS, "/moni.js", "text/javascript");
 });
@@ -2150,7 +2152,8 @@ void setup()
 #endif
 
   //sx1278.setLNAGain(-48);
-  sx1278.setLNAGain(0);
+  //sx1278.setLNAGain(0);
+  sx1278.writeRegister(0X0C, 0b00100011); //LZ4TU LNAMOD
 
   int gain = sx1278.getLNAGain();
   Serial.print("RX LNA Gain is ");
@@ -2331,7 +2334,7 @@ void loopDecoder() {
     if (s->d.validID && ((s->d.validPos & 0x03) == 0x03)) {
 #if FEATURE_APRS
       connAPRS.updateSonde(s);
-	  newdata = false; // Suppose new data is sent via APRS   LZ4TU-5 MOD
+	    newdata = false; // Suppose new data is sent via APRS   LZ4TU-5 MOD
 #endif
 #if FEATURE_CHASEMAPPER
       connChasemapper.updateSonde( s );
