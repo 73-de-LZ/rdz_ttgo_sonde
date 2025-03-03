@@ -19,7 +19,9 @@
 #include <Wire.h>
 #include "conn-mqtt.h"
 
-float AltThreshold = 5000; // Altitude threshold, below it LZ4TU SCAN algo will stop and continue only when there is NORX Timeout
+float AltThreshold = 5000.0; // Altitude threshold, below it LZ4TU SCAN algo will stop and continue only when there is NORX Timeout
+float VspeedThreshold = -1.5; // Vertical speed threshold, for LZ4TU SCAN algo to detect landing sonde and stop scan 
+uint8_t LandingSonde = 0; // LZ4TU Landing stop SCAN mod, 0;1 or 2, used to switch to screen3 that does not have VIEWTO and RXTO
 
 RXTask rxtask = { -1, -1, -1, 0xFFFF, 0 };
 
@@ -353,8 +355,7 @@ extern const int N_CONFIG;
 void Sonde::checkConfig() {
 	if(config.maxsonde > MAXSONDE) config.maxsonde = MAXSONDE;
 	if(config.sondehub.fiinterval<5) config.sondehub.fiinterval = 5;
-	//LZ4TU mod max dist.
-	if(config.sondehub.fimaxdist>1200) config.sondehub.fimaxdist = 1200;
+	if(config.sondehub.fimaxdist>1200) config.sondehub.fimaxdist = 1200; //LZ4TU mod max dist.
 	if(config.sondehub.fimaxage>48) config.sondehub.fimaxage = 48;
 	if(config.sondehub.fimaxdist==0) config.sondehub.fimaxdist = 150;
 	if(config.sondehub.fimaxage==0) config.sondehub.fimaxage = 2;
@@ -600,8 +601,16 @@ void Sonde::receive() {
 	// we should handle timer events here, because after returning from receive,
 	// we'll directly enter setup
 	rxtask.receiveSonde = rxtask.currentSonde; // pass info about decoded sonde to main loop
-
-	int event = getKeyPressEvent();
+	#if 1 //LZ4TU Landing stop mod:
+		int event = 0;
+		if (LandingSonde == 1) {
+			event = 6;  // simulate button2.pressed = KP_DOUBLE = 2 + 4 and go to screens2.txt display 3 = PauseLanding
+			LandingSonde = 2;
+		}
+		else {
+			event = getKeyPressEvent();
+		}
+	#endif
 	if (!event) event = timeoutEvent(si);
 	else sonde.dispsavectlON();
 	int action = (event==EVT_NONE) ? ACT_NONE : disp.layout->actions[event];
@@ -693,12 +702,13 @@ uint8_t Sonde::timeoutEvent(SondeInfo *si) {
 		now, si->rxStart, disp.layout->timeouts[1],
 		now, si->norxStart, disp.layout->timeouts[2], si->lastState);
 #endif
-// LZ4TU mod :
-    if(si->d.vs < -1.5 && si->d.alt < AltThreshold) {  // If vertical speed is negative(sonde falls), and Altitude is lower than treshold
-        si->rxStart = millis(); // clear RXTO timer
-		si->viewStart = millis(); // clear also the total timer
+#if 1 //LZ4TU Landing stop mod:
+	// If vertical speed is negative(sonde falls), and Altitude is lower than treshold
+	// and lastState = RXed and it is first time detected
+    if(si->d.vs < VspeedThreshold && si->d.alt < AltThreshold && si->lastState == 1 && LandingSonde == 0 ) {  
+		LandingSonde = 1;		
     }
-	
+#endif	
 	if(disp.layout->timeouts[0]>=0 && now - si->viewStart >= disp.layout->timeouts[0]) {
 		LOG_I(TAG, "Sonde::timeoutEvent: View\n");
 		return EVT_VIEWTO;
@@ -709,6 +719,7 @@ uint8_t Sonde::timeoutEvent(SondeInfo *si) {
 	}
 	if(si->lastState==0 && disp.layout->timeouts[2]>=0 && now - si->norxStart >= disp.layout->timeouts[2]) {
 		LOG_I(TAG, "Sonde::timeoutEvent: NORX\n");
+		LandingSonde = 0; //LZ4TU Landing stop mod: clear LandingSonde 
 		return EVT_NORXTO;
 	}
 	return 0;
