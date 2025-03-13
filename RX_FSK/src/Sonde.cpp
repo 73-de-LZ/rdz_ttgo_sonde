@@ -35,6 +35,7 @@ uint8_t LandingSonde = 0; // LZ4TU mod to stop SCAN during landing
 // 6: Refresh AFC by initializing Scan mode once under 1000m
 // 7: Landing sonde, switch to display 3
 // 8: Landing sonde receiving in display 3, NORX timeout can exit and return to scan mode
+// 9: DFM (not landing) received, we switch to display 8 = DFMlongRX
 
 RXTask rxtask = { -1, -1, -1, 0xFFFF, 0 };
 
@@ -647,7 +648,13 @@ void Sonde::receive() {
 				LandingSonde = 8;
 				break;
 			}
-			default: event = getKeyPressEvent(); // 0,2,5,8 
+			case 9:  // DFM long RX (but not landing DFM)
+			{
+				event = 8;  // simulate button2.pressed = KP_LONG = 4 + 4 and go to screens2.txt display 8 = DFMlongRX
+				LandingSonde = 10; //
+				break;
+			}
+			default: event = getKeyPressEvent(); // when LandingSonde is 0,2,5,8,10 
 		}
 	#endif
 	if (!event) event = timeoutEvent(si);
@@ -741,14 +748,16 @@ uint8_t Sonde::timeoutEvent(SondeInfo *si) {
 		now, si->rxStart, disp.layout->timeouts[1],
 		now, si->norxStart, disp.layout->timeouts[2], si->lastState);
 #endif
-#if 1 //LZ4TU scan stop on Landing mod:
-	// If vertical speed is negative(sonde falls), and Altitude is lower than treshold
-	// and lastState = RXed and it is first time detected
-    if(si->d.vs < VspeedThreshold && si->d.alt < AltThreshold && si->lastState == 1 && LandingSonde == 0 ) {  
-		LandingSonde = 1;
+#if 1 //LZ4TU scan stop on LandingSonde mod:
+	// If LandingSonde is not detected already, or we receiving DFM in display 8 = DFMlongRX
+	// And IF vertical speed is negative(sonde falls), and Altitude is lower than treshold and lastState = RXed 
+	if (LandingSonde == 0 || LandingSonde == 10) {
+    	if(si->d.vs < VspeedThreshold && si->d.alt < AltThreshold && si->lastState == 1 ) {
+        	LandingSonde = 1;
+    	}
     }
-	// M10 M20 landing AFC refresh
-	if(TYPE_IS_METEO(si->type)) {
+	// M10 M20 landing AFC refresh, DFM drifting even more, add them also
+	if(TYPE_IS_METEO(si->type) || TYPE_IS_DFM(si->type)) {
 		if(LandingSonde == 2 && si->d.alt < AltThresholdHi && si->d.alt > AltThresholdLo ) {
 		LandingSonde = 3;
 		}
@@ -756,13 +765,24 @@ uint8_t Sonde::timeoutEvent(SondeInfo *si) {
 		LandingSonde = 6;
 		}
 	}
+	// DFM needs more time for SN decode, if not landing and received and TYPE is DFM 
+	// will switch to screen 8
+	if(LandingSonde == 0 && si->lastState == 1 && TYPE_IS_DFM(si->type) ) {
+		LandingSonde = 9;
+	}
 #endif	
 	if(disp.layout->timeouts[0]>=0 && now - si->viewStart >= disp.layout->timeouts[0]) {
 		LOG_I(TAG, "Sonde::timeoutEvent: View\n");
+		if(LandingSonde == 10) {
+			LandingSonde = 0; // we will exit DFMlongRX, so also clear LandingSonde
+		}
 		return EVT_VIEWTO;
 	}
 	if(si->lastState==1 && disp.layout->timeouts[1]>=0 && now - si->rxStart >= disp.layout->timeouts[1]) {
 		LOG_I(TAG, "Sonde::timeoutEvent: RX\n");
+		if(LandingSonde == 10) {
+			LandingSonde = 0; // we will exit DFMlongRX, so also clear LandingSonde
+		}
 		return EVT_RXTO;
 	}
 	if(si->lastState==0 && disp.layout->timeouts[2]>=0 && now - si->norxStart >= disp.layout->timeouts[2]) {
