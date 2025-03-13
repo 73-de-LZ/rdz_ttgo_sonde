@@ -123,7 +123,7 @@ For TTGO boards without configurable button there are some new parameter in conf
 see [Wiki](https://github.com/dl9rdz/rdz_ttgo_sonde/wiki/Installation)
 
 ### Notes by LZ4TU
-LZ4TU small modifications for the DL9RDZ rdz_ttgo_sonde project, primarily optimized for stationary operation.
+Small modifications for the DL9RDZ rdz_ttgo_sonde project, primarily optimized for stationary operation.
 How to install if you do not have PlatformIO:
 1. Upload full bin from http://rdzsonde.mooo.com/download.html with ESP32 flash_download_tool, version must be with the same FFS code 
  Example "C3"  as in dev20250218-C3-full.bin
