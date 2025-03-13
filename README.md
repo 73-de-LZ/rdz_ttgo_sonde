@@ -123,25 +123,18 @@ For TTGO boards without configurable button there are some new parameter in conf
 see [Wiki](https://github.com/dl9rdz/rdz_ttgo_sonde/wiki/Installation)
 
 ### Notes by LZ4TU
-Small modifications for the DL9RDZ rdz_ttgo_sonde project, primarily optimized for stationary operation.
-How to install if you do not have PlatformIO:
-1. Upload full bin from http://rdzsonde.mooo.com/download.html with ESP32 flash_download_tool, version must be with the same FFS code 
- Example "C3"  as in dev20250218-C3-full.bin
-2. By the same way upload update.ino.bin from https://github.com/73-de-LZ/73-de-LZ.github.io/tree/main/dev2
-3. Open webinterface of rdzTTGOsonde with browser and load http://mDNS.or.YOUR.IP/edit.html?file=upd.html save moded version
-4. Copy the content of https://github.com/dl9rdz/rdz_ttgo_sonde/tree/dev2/RX_FSK/data/upd.html and paste into web editor page, than save it.
-5. Copy the content of https://github.com/dl9rdz/rdz_ttgo_sonde/tree/dev2/RX_FSK/data/screens2.txt  and paste into http://mDNS.or.YOUR.IP/edit.html?file=screens2.txt, than save it.
-6. Also you can restore your settings from this files: netowrks.txt, config.txt, qrg.txt, or cofigure them from the webinterface.
-7. IMPORTANT! To benefit from modified version this change this settings:
+Use PlatformIO to compile and flash.
+IMPORTANT! To use this modified version, OLED display is supposed and this settings should be changed:
    - Config>>OLED/TFT display configuration>>Screen config (0=automatic; 1-5=predefined; other=custom) = 2
    - Config>>OLED/TFT display configuration>>Display screens (scan, default, ...) = 0,1,3,4,5,6
-9. Do OTA update and enjoy the mods
+Use PlatformIO to compile and flash.
 ### Mods by LZ4TU, included in this repo, (*will be explained later, but all changes are commented in the source with LZ4TU at least):
 1. Not blocking scaning algorithm.
 2. Stop scaning if Landing sonde is detected.
 3. Small changes in visualization and controls in "Livemap".
 4. AFC refresh during landing of M10,M20 and DFM sondes.
-5. Visualise and send Telemetry data received on RX1 port (needs also HW modification), not conflicting by any way if this mod is not used.
+5. OTA update source address is changed.
+6. Visualise and send Telemetry data received on RX1 port (needs also HW modification), not conflicting by any way if this mod is not used.
 
 ### 73!
 
