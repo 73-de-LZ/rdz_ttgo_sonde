@@ -936,7 +936,7 @@ const char *handleConfigPost(AsyncWebServerRequest * request) {
 const char *ctrlid[] = {"rx", "scan", "spec", "wifi", "rx2", "scan2", "spec2", "wifi2", "reboot"};
 
 const char *ctrllabel[] = {"Receiver/next freq. (short keypress)", "Scanner (double keypress)", "Spectrum (medium keypress)", "WiFi (long keypress)",
-                           "Button 2/next screen (short keypress)", "Button 2/Pause-Landing (double keypress)", "Button 2/Stop (medium keypress)", "Button 2 (long keypress)",
+                           "Button 2/next screen (short keypress)", "Button 2/Pause-Landing (double keypress)", "Button 2/Stop (medium keypress)", "Button 2/DFM (long keypress)",
                            "Reboot"
                           };
 
