@@ -1,4 +1,4 @@
-### screens2.txt: OLED display
+### screens2.txt: OLED display LZ4TU scan, stop on landing mod should be used from ver. devLZxxxxxxx
 # Definition of display content and action behaviour
 #
 # Timer: (view timer, rx timer, norx timer)
@@ -107,11 +107,11 @@
 #      Mid press activates Spectrum display, long press activates Wifi scan
 ###################### MOD BY LZ4TU #####################
 # view RSSI after QRG in Scanner screen: added line 3,10=R
-# - key2 short: next screen, double: Pause-Landing to Display 3, medium: Stop to Display 4, long: no function
+# - key2 short: next screen, double: Pause-Landing to Display 3, medium: Stop to Display 4, long: DFM long RX
 @Scanner
 timer=-1,0,2
 key1action=D,#,F,W
-key2action=>,3,4,#
+key2action=>,3,4,8
 timeaction=#,D,+
 0,0=XScan
 0,5=S#:
@@ -143,7 +143,7 @@ timeaction=#,D,+
 @Legacy
 timer=25,5,20
 key1action=+,0,F,W
-key2action=>,3,4,#
+key2action=>,3,4,8
 timeaction=2,2,0
 0,5=f MHz
 1,8=c
@@ -179,7 +179,7 @@ timeaction=0,+,0
 @PauseLanding
 timer=-1,-1,30
 key1action=+,0,F,W
-key2action=>,3,4,#
+key2action=>,3,4,8
 timeaction=#,#,0
 2,0=L
 4,0=O
@@ -192,12 +192,12 @@ timeaction=#,#,0
 6,7=Q
 
 #############
-# Configuration for old "GPS" display
+# Configuration for old "GPS" (display 4)
 # Now used to Stop on QRG untill another key/cmd 
 @Stop
 timer=-1,-1,-1
 key1action=+,0,F,W
-key2action=>,3,4,#
+key2action=>,3,4,8
 timeaction=#,#,#
 0,0=Is
 0,9=f
@@ -215,11 +215,11 @@ timeaction=#,#,#
 7,4=gD
 7,12=gI°
 
-############
+############ 5
 @BatteryOLED
 timer=-1,-1,-1
 key1action=+,0,F,W
-key2action=>,3,4,#
+key2action=>,3,4,8
 timeaction=#,#,#
 fonts=0,1
 0,0=xBat.Status:
@@ -234,11 +234,11 @@ fonts=0,1
 6,0=xTemp:
 6,5=bT C
 
-#############
+############# 6
 @Meteo
 timer=-1,-1,-1
 key1action=+,0,F,W
-key2action=>,3,4,#
+key2action=>,3,4,8
 timeaction=#,#,#
 fonts=0,1
 0,0=Is
@@ -252,11 +252,11 @@ fonts=0,1
 6,0=MphPa
 6,11=MbV
 
-#############
+############# 7
 @GPS-Data
 timer=-1,-1,-1
 key1action=+,0,F,W
-key2action=>,3,4,#
+key2action=>,3,4,8
 timeaction=#,#,#
 fonts=0,1
 0,0=xGPS-Data
@@ -272,28 +272,22 @@ fonts=0,1
 6,0=xDist:
 6,6=gD
 
-###########
-# 
-# Default configuration for "Scanner" display:
-# - view timer disabled;  rx timer=0; norx timer = 0
-#   => after 1 second immediately an action is triggered
-#      (norx: go to next sonde; rx: go to default receiver display)
-# - key1 actions: D,0,F,W
-#   => Button press activates default receiver view, double press does nothing
-#      Mid press activates Spectrum display, long press activates Wifi scan
-# - key2 has no function
-@ScannerBatt
-timer=-1,0,0
-key1action=D,#,F,W
+########### DFM sonde Display 8
+# DFM Sondes needs more time to get SN, so if DFM is detected, instead of display 1 we switch to this
+@DFMlongRX
+timer=28,20,22
+key1action=+,0,F,W
 key2action=>,3,4,#
-timeaction=#,D,+
-0,0=XScan
-0,5=S#:
-0,9=T
-2,0,16=s
-3,0=F MHz
-6,0=bS
-6,2=bVVb
-6,10=bUVu
-7,0=gV
-7,5=n
+timeaction=2,2,0
+0,5=f MHz
+1,8=c
+0,0=x!
+0,1=t
+1,0=is
+2,0=L
+4,0=O
+2,10=a
+3,10=h
+4,9=v
+6,0=R
+6,7=Q
