@@ -141,10 +141,11 @@ map.addControl(new L.Control.Button([
 
 map.addControl(new L.Control.Button([ { position:'topright', text: '⚙️', href: 'javascript:show_settings();' } ]));
 /* LZ4TU mod live map scan, pause scan, stop scan, NextQRG mod begin*/
-map.addControl(new L.Control.Button([ { position: 'bottomleft', text: 'CH+', href: 'javascript:button1_short();' } ]));
+map.addControl(new L.Control.Button([ { position: 'bottomleft', text: 'Stop', href: 'javascript:button2_medium();' } ]));
 map.addControl(new L.Control.Button([ { position: 'bottomleft', text: 'Scan', href: 'javascript:button1_double();' } ]));
-map.addControl(new L.Control.Button([ { position: 'bottomright', text: 'Stop', href: 'javascript:button2_medium();' } ]));
 map.addControl(new L.Control.Button([ { position: 'bottomright', text: 'Pause', href: 'javascript:button2_double();' } ]));
+map.addControl(new L.Control.Button([ { position: 'bottomright', text: 'CH+', href: 'javascript:button1_short();' } ]));
+
   button1_short = function() {
     fetch("control.html", {
     method: "POST",
