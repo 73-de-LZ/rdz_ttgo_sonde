@@ -36,6 +36,10 @@ uint8_t LandingSonde = 0; // LZ4TU mod to stop SCAN during landing
 // 7: Landing sonde, switch to display 3
 // 8: Landing sonde receiving in display 3, NORX timeout can exit and return to scan mode
 // 9: DFM (not landing) received, we switch to display 8 = DFMlongRX
+// 10: receiving DFM in display 8 = DFMlongRX, All timer actions exit to display 2 = switch to next QRG
+// 11: CH+ requested during LandingSonde 2,5 or 8 in Dsiplay 3, when Static coordinates or RX error in Vspeed
+// 12: switch to SCAN mode Diplay 0
+
 
 RXTask rxtask = { -1, -1, -1, 0xFFFF, 0 };
 
@@ -654,6 +658,18 @@ void Sonde::receive() {
 				LandingSonde = 10; //
 				break;
 			}
+			case 11: // CH+ requested during LandingSonde 2,5 or 8
+			{
+				event = 1;  // simulate button1.pressed = KP_SHORT = 1 = CH+
+				LandingSonde = 12; // request SCAN mode
+				break;
+			}
+			case 12: // continue SCAN, clear LandingSonde
+			{
+				event = 2;  // simulate button1.pressed = KP_DOUBLE = 2 and go to screens2.txt display 0 = Scanner
+				LandingSonde = 0; // clear LandingSonde
+				break;
+			}
 			default: event = getKeyPressEvent(); // when LandingSonde is 0,2,5,8,10 
 		}
 	#endif
@@ -770,6 +786,16 @@ uint8_t Sonde::timeoutEvent(SondeInfo *si) {
 	if(LandingSonde == 0 && si->lastState == 1 && TYPE_IS_DFM(si->type) ) {
 		LandingSonde = 9;
 	}
+	// We handle here static sondes, false falling or floaters
+	// Once an sonde has been detected as falling, only NORX timer could cause exit from display 3
+	// In these cases we need to exit from display 3 before NORX to occur
+	// If we detected and now receiving LandingSonde = 2,5 or 8 in display 3
+	// If RCVD static coordinates or erroneus negative V speed (false falling or floater)
+	if (LandingSonde == 2 || LandingSonde == 5 || LandingSonde == 8) {
+		if(si->d.vs >= 0) {
+			LandingSonde = 11; // Request to CH+ and then goto Scanner Display 0
+		}	
+	}
 #endif	
 	if(disp.layout->timeouts[0]>=0 && now - si->viewStart >= disp.layout->timeouts[0]) {
 		LOG_I(TAG, "Sonde::timeoutEvent: View\n");
@@ -790,6 +816,7 @@ uint8_t Sonde::timeoutEvent(SondeInfo *si) {
 		LandingSonde = 0; //LZ4TU Landing stop mod: clear LandingSonde 
 		return EVT_NORXTO;
 	}
+
 	return 0;
 }
 
