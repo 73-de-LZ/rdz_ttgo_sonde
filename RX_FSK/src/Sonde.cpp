@@ -816,7 +816,6 @@ uint8_t Sonde::timeoutEvent(SondeInfo *si) {
 		LandingSonde = 0; //LZ4TU Landing stop mod: clear LandingSonde 
 		return EVT_NORXTO;
 	}
-
 	return 0;
 }
 
