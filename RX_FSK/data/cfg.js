@@ -73,7 +73,7 @@ var cfgs = [
 [ "", "SondeHub frequency import", "https://github.com/dl9rdz/rdz_ttgo_sonde/wiki/SondeHub-import" ],
 [ "sondehub.fiactive", "SondeHub frequency import active (0=disabled, 1=active)" ],
 [ "sondehub.fiinterval", "Import frequency (minutes, &geq; 5)" ],
-[ "sondehub.fimaxdist", "Import maximum distance (km, &leq; 700)" ],
+[ "sondehub.fimaxdist", "Import maximum distance (km, &leq; 1200)" ],    // LZ4TU 
 [ "sondehub.fimaxage", "Import maximum age (hours, &leq; 48)" ],
 [ "", "SD card logger configuration", "https://github.com/dl9rdz/rdz_ttgo_sonde/wiki/SDcard-configuration"],
 [ "sd.cs", "SD card CS" ],

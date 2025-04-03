@@ -209,6 +209,18 @@ h1{
   margin: 0;
   display: block;
 }
+/* LZ4TU mod live map */
+.livemb {
+	background-color: #ccc;
+    padding: 6px 30px;
+}
+/* LZ4TU mod live map */
+.spaceb{
+	background-color: #ccc;
+  width: 20px;
+  display: inline-block;
+}
+/* LZ4TU mod live map */
 
 #map {
 	height: 100%;
@@ -347,6 +359,12 @@ h1{
 	background-color: red;
 	background-image: -webkit-gradient(linear, left top, left bottom, from(orange), to(red));
 	background-image: linear-gradient(top, orange, red); 
+}
+/* Blue dot mod LZ4TU */
+.bbg { 
+	background-color: blue;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(cyan), to(blue));
+	background-image: linear-gradient(top, cyan, blue); 
 }
 
 #sonde_statbar .ldot {

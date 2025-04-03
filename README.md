@@ -122,3 +122,19 @@ For TTGO boards without configurable button there are some new parameter in conf
 
 see [Wiki](https://github.com/dl9rdz/rdz_ttgo_sonde/wiki/Installation)
 
+### Notes by LZ4TU
+Use PlatformIO to compile and flash.
+IMPORTANT! To use this modified version, OLED display is supposed and this settings should be changed:
+   - Config>>OLED/TFT display configuration>>Screen config (0=automatic; 1-5=predefined; other=custom) = 2
+   - Config>>OLED/TFT display configuration>>Display screens (scan, default, ...) = 0,1,3,4,5,6
+Use PlatformIO to compile and flash.
+### Mods by LZ4TU, included in this repo, (*will be explained later, but all changes are commented in the source with LZ4TU at least):
+1. Not blocking scaning algorithm.
+2. Stop scaning if Landing sonde is detected.
+3. Small changes in visualization and controls in "Livemap".
+4. AFC refresh during landing of M10,M20 and DFM sondes.
+5. OTA update source address is changed.
+6. Visualise and send Telemetry data received on RX1 port (needs also HW modification), not conflicting by any way if this mod is not used.
+
+### 73!
+
