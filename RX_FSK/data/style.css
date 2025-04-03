@@ -321,6 +321,19 @@ h1{
 	display:none;
 }
 
+/* LZ4TU Colored Button States */
+.leaflet-bar a:hover {
+  background-color: #4cffa8 !important;
+}
+
+.leaflet-bar a:active {
+  background-color: #67d090 !important;
+}
+
+.leaflet-bar a:focus:not(:active) {
+  background-color: #a3ffbf !important;
+}
+
 @media screen and (max-width: 600px) {
     .leaflet-control-attribution {
         -moz-transform: rotate(-90deg) translateX(100%);
