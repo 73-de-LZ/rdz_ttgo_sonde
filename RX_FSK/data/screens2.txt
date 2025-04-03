@@ -109,7 +109,7 @@
 # view RSSI after QRG in Scanner screen: added line 3,10=R
 # - key2 short: next screen, double: Pause-Landing to Display 3, medium: Stop to Display 4, long: DFM long RX
 @Scanner
-timer=-1,0,2
+timer=-1,0,1
 key1action=D,#,F,W
 key2action=>,3,4,8
 timeaction=#,D,+
@@ -141,7 +141,7 @@ timeaction=#,D,+
 # 10: "rx timer" - IF there is stable RX for every one second in 10 seconds period, scan continue to next QRG.
 # 25: "norx timer" - IF there is NORX for each second in 25 seconds period, scan continue to next QRG.
 @Legacy
-timer=25,5,20
+timer=22,2,20
 key1action=+,0,F,W
 key2action=>,3,4,8
 timeaction=2,2,0
