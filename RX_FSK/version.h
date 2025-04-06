@@ -1,5 +1,5 @@
 const char *version_name = "rdzTTGOsonde";
-const char *version_id = "devLZ20250404";
+const char *version_id = "devLZ20250408";
 const int FS_MAJOR=3;
 const int FS_MINOR=3;
 
