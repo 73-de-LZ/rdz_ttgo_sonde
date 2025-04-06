@@ -19,10 +19,10 @@
 #include <Wire.h>
 #include "conn-mqtt.h"
 
-float AltThreshold = 5000.0; // Altitude threshold, below it LZ4TU SCAN algo will stop and continue only when there is NORX Timeout
-float AltThresholdHi = 2200.0; // M10 M20 AFC refresh High Altitude
-float AltThresholdLo = 1000.0; //  M10 M20 AFC refresh Low Altitude
-float VspeedThreshold = -1.5; // Vertical speed threshold, for LZ4TU SCAN algo to detect landing sonde and stop scan 
+const float AltThreshold = 5000.0; // Altitude threshold, below it LZ4TU SCAN algo will stop and continue only when there is NORX Timeout
+const float AltThresholdHi = 2200.0; // M10 M20 AFC refresh High Altitude
+const float AltThresholdLo = 1000.0; //  M10 M20 AFC refresh Low Altitude
+const float VspeedThreshold = -1.5; // Vertical speed threshold, for LZ4TU SCAN algo to detect landing sonde and stop scan 
 uint8_t LandingSonde = 0; // LZ4TU mod to stop SCAN during landing
 // 0: No landing sonde detected
 // 1: First detection of landing sonde, switch to display 3
@@ -38,7 +38,7 @@ uint8_t LandingSonde = 0; // LZ4TU mod to stop SCAN during landing
 // 9: DFM (not landing) received, we switch to display 8 = DFMlongRX
 // 10: receiving DFM in display 8 = DFMlongRX, All timer actions exit to display 2 = switch to next QRG
 // 11: CH+ requested during LandingSonde 2,5 or 8 in Dsiplay 3, when Static coordinates or RX error in Vspeed
-// 12: switch to SCAN mode Diplay 0
+// 12: switch to SCAN mode Display 0
 
 
 RXTask rxtask = { -1, -1, -1, 0xFFFF, 0 };
@@ -597,7 +597,37 @@ void Sonde::receive() {
 		res = mp3h.receive();
 		break;
 	}
-
+#if 1 // LZ4TU COUNT ERROR RX as NORX MOD, give more chanse to sondes with error packets to be received OK
+	// state information for RX_TIMER / NORX_TIMER events
+	uint32_t tstart = millis();
+	switch(res) {
+	case RX_OK:
+		flashLed(700);  // Long flash for RXOK
+		if(si->lastState != 1) {  // if was norx or rxerror
+			si->rxStart = tstart;  // start count RXOK
+		}
+		if(si->lastState < 1) {  // if norx till now 
+			sonde.dispsavectlON();
+		}
+		si->lastState = 1;
+		break;
+	case RX_ERROR:
+		flashLed(100);  // Short flash for RX ERROR
+		if(si->lastState < 1) { // if norx till now 
+			sonde.dispsavectlON();
+		}
+		si->rxStart = tstart; // no matter if last RX was NORX RXOK or RXERROR,
+		si->norxStart = tstart;  // start both NORX and RXOK counters, as they will be checked only
+		si->lastState = 2;  // if lastState is 0 or 1, only VIEWTO can expire if we receive only errors 
+		break;
+	default: // RX Timeout
+		if(si->lastState != 0) {
+			si->norxStart = tstart;
+			si->lastState = 0;
+		}
+	}
+	// LOG_I(TAG, "debug: res was %d, now lastState is %d\n", res, si->lastState);
+#else
 	// state information for RX_TIMER / NORX_TIMER events
 	if(res==RX_OK || res==RX_ERROR) {  // something was received...
 		flashLed( (res==RX_OK)?700:100);
@@ -614,7 +644,7 @@ void Sonde::receive() {
 		}
 	}
 	// LOG_I(TAG, "debug: res was %d, now lastState is %d\n", res, si->lastState);
-
+#endif
 
 	// we should handle timer events here, because after returning from receive,
 	// we'll directly enter setup
@@ -623,53 +653,37 @@ void Sonde::receive() {
 		int event = 0;
 		switch (LandingSonde) {
 			case 1: 
-			{
-				event = 6;  // simulate button2.pressed = KP_DOUBLE = 2 + 4 and go to screens2.txt display 3 = PauseLanding
+				event = EVT_KEY2DOUBLE;  // simulate button2.pressed = KP_DOUBLE = 2 + 4 and go to screens2.txt display 3 = PauseLanding
 				LandingSonde = 2;
 				break;
-			}
 			case 3: 
-			{
-				event = 2;  // simulate button1.pressed = KP_DOUBLE = 2 and go to screens2.txt display 0 = Scanner
+				event = EVT_KEY1DOUBLE;  // simulate button1.pressed = KP_DOUBLE = 2 and go to screens2.txt display 0 = Scanner
 				LandingSonde = 4; // next pass will switch again to display 3 = PauseLanding
 				break;
-			}
 			case 4: 
-			{
-				event = 6;  // go to display 3 = PauseLanding
+				event = EVT_KEY2DOUBLE;  // go to display 3 = PauseLanding
 				LandingSonde = 5;
 				break;
-			}
 			case 6: 
-			{
-				event = 2;  // go to display 0 = Scanner
+				event = EVT_KEY1DOUBLE;  // go to display 0 = Scanner
 				LandingSonde = 7; // next pass will switch again to display 3 = PauseLanding
 				break;
-			}
 			case 7: 
-			{
-				event = 6;  // go to display 3 = PauseLanding
+				event = EVT_KEY2DOUBLE;  // go to display 3 = PauseLanding
 				LandingSonde = 8;
 				break;
-			}
 			case 9:  // DFM long RX (but not landing DFM)
-			{
-				event = 8;  // simulate button2.pressed = KP_LONG = 4 + 4 and go to screens2.txt display 8 = DFMlongRX
+				event = EVT_KEY2LONG;  // simulate button2.pressed = KP_LONG = 4 + 4 and go to screens2.txt display 8 = DFMlongRX
 				LandingSonde = 10; //
 				break;
-			}
 			case 11: // CH+ requested during LandingSonde 2,5 or 8
-			{
-				event = 1;  // simulate button1.pressed = KP_SHORT = 1 = CH+
+				event = EVT_KEY1SHORT;  // simulate button1.pressed = KP_SHORT = 1 = CH+
 				LandingSonde = 12; // request SCAN mode
 				break;
-			}
 			case 12: // continue SCAN, clear LandingSonde
-			{
-				event = 2;  // simulate button1.pressed = KP_DOUBLE = 2 and go to screens2.txt display 0 = Scanner
+				event = EVT_KEY1DOUBLE;  // simulate button1.pressed = KP_DOUBLE = 2 and go to screens2.txt display 0 = Scanner
 				LandingSonde = 0; // clear LandingSonde
 				break;
-			}
 			default: event = getKeyPressEvent(); // when LandingSonde is 0,2,5,8,10 
 		}
 	#endif
@@ -772,7 +786,7 @@ uint8_t Sonde::timeoutEvent(SondeInfo *si) {
         	LandingSonde = 1;
     	}
     }
-	// M10 M20 landing AFC refresh, DFM drifting even more, add them also
+	// M10 M20 landing AFC refresh, DFM drifting even more, added them also
 	if(TYPE_IS_METEO(si->type) || TYPE_IS_DFM(si->type)) {
 		if(LandingSonde == 2 && si->d.alt < AltThresholdHi && si->d.alt > AltThresholdLo ) {
 		LandingSonde = 3;
