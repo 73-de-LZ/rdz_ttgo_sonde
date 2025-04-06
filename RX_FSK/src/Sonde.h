@@ -138,7 +138,7 @@ typedef struct st_sondeinfo {
 	uint32_t rxStart;    		// millis() timestamp of continuous rx start
 	uint32_t norxStart;		// millis() timestamp of continuous no rx start
 	uint32_t viewStart;		// millis() timestamp of viewinf this sonde with current display
-	int8_t lastState;		// -1: disabled; 0: norx; 1: rx
+	int8_t lastState;		// -1: disabled; 0: norx; 1: rx ; 2 rxerror LZ4TU mod
 
 	// Third part: decoded data. Clear if reception of a new sonde has started
 	SondeData d;

@@ -66,7 +66,7 @@ void ShFreqImport::populate(char *id, float lat, float lon, float freq, const ch
     // update label if its a dynamic SH entry
     int i;
     for(i=0; i<sonde.config.maxsonde; i++) {
-	if( abs(sonde.sondeList[i].freq-freq)<0.003 ) { // exists already, max error 3000 Hz
+	if( abs(sonde.sondeList[i].freq-freq)<0.0044 ) { // exists already, max error 3000 Hz > LZ4TU changed to +/-4.4 kHz
 	    Serial.printf("id %s close to %d\n", id, i);
 	    if( sonde.sondeList[i].type == stype) {
 		char *l = sonde.sondeList[i].launchsite;

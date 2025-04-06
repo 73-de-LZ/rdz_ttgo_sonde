@@ -17,8 +17,8 @@
 	<a href="#ctrl" onclick="selTab(event,'Control')" class="tablinks">Control</a>
 	<a href="#config" onclick="selTab(event,'Config')" class="tablinks">Config</a>
 	<a href="#wifi" onclick="selTab(event,'WiFi')" class="tablinks">WiFi</a>
-	<!-- LZ4TU-5 telemetry mod: Added link to Monitor in topnav bar -->
-	<a href="#monitor" onclick="document.location.href='monitor.html'" class="tablinks">Monitor</a>
+	<!-- LZ4TU-5 telemetry mod: Added Monitor in topnav bar -->
+	<a href="#monitor" onclick="selTab(event,'Monitor')" class="tablinks">Monitor</a>
 	<a href="javascript:void(0);" class="icon" onclick="myFunction()">
 		<span class="hamburger"></span>
 	</a>
@@ -84,6 +84,10 @@
 
 <div id="Control" class="tabcontent" data-src="control.html">
 	<iframe class="tci" src="" ></iframe>
+</div>
+<!-- LZ4TU-5 telemetry mod: Added Monitor in topnav bar -->
+<div id="Monitor" class="tabcontent" data-src="monitor.html">
+  <iframe class="tci" src=""></iframe>
 </div>
 </div>
 <script>
@@ -168,3 +172,4 @@ if(sessionC) {
 
 </body>
 </html>
+
